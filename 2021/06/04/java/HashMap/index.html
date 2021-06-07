@@ -1,0 +1,662 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/notebook.ico">
+  <link rel="icon" href="/img/notebook.ico">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+  <title>Java HashMap原理以及常见的面试题 - xulinglin</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/monokai-sublime.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+  
+<link rel="stylesheet" href="/css/diy/shubiao.css">
+<link rel="stylesheet" href="//cdn.jsdelivr.net/gh/bynotes/texiao/source/css/toubudaziji.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.11","typing":{"enable":true,"typeSpeed":70,"cursorChar":"","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 30vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>笑语</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                目录
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/img_1.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.5)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Java HashMap原理以及常见的面试题">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-06-04 12:02" pubdate>
+        2021年6月4日 中午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      32
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Java HashMap原理以及常见的面试题</h1>
+            
+            <div class="markdown-body">
+              <p class="note note-info">
+叙述 <span class="label label-primary">HashMap</span> 原理这里以代码为例,本文还回分析一些HashMap在面试中遇到的一些问题以及解答。
+</p>
+
+<h2 id="1-先了解几点重要知识"><a href="#1-先了解几点重要知识" class="headerlink" title="1. 先了解几点重要知识"></a>1. 先了解几点重要知识</h2><h3 id="1-1-HashMap的组成"><a href="#1-1-HashMap的组成" class="headerlink" title="1.1. HashMap的组成"></a>1.1. HashMap的组成</h3><ul>
+    <li>JDK1.7 数组+列表（Entry）分散存储在一个数组。</li>
+    <li>JDK1.8 数组+列表+红黑树,（Entry）分散存储在一个数组。JDK1.8中在 <span class="label label-primary">HashMap</span> 中引入了红黑树的概念。</li>
+</ul>
+
+<h3 id="1-2-扩容因子：0-75"><a href="#1-2-扩容因子：0-75" class="headerlink" title="1.2. 扩容因子：0.75"></a>1.2. 扩容因子：0.75</h3><ul>
+    <li>加载因子是表示Hash表中元素的填满的程度。加载因子越大,填满的元素越多,空间利用率越高，但冲突的机会加大了。</li>
+    <li>反之,加载因子越小,填满的元素越少,冲突的机会减小,但空间浪费多了。</li>
+    <li>因此,必须在 “冲突的机会”与”空间利用率”之间寻找一种平衡与折衷。</li>
+    <li><span class="label label-primary">HashMap</span>负载因子为 0.75 (百分之75) 是空间和时间成本的一种折中。</li>
+</ul>
+
+<h3 id="1-3-初始容量：2的幂次方"><a href="#1-3-初始容量：2的幂次方" class="headerlink" title="1.3. 初始容量：2的幂次方"></a>1.3. 初始容量：2的幂次方</h3><p>在初始化时 <span class="label label-primary">HashMap</span> 会计算当前容量是否为2的幂次方,如果不是将补足。</p>
+<p class="note note-info">
+如：new HashMap<>(10) 假设我们初始化数组容量为10,在初始化会计算为2的幂次方也就是16。
+</p>
+如下代码：
+
+<div class="hljs code-wrapper"><pre><code class="hljs Java"><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> <span class="hljs-title">tableSizeFor</span><span class="hljs-params">(<span class="hljs-keyword">int</span> cap)</span> </span>&#123;
+        <span class="hljs-keyword">int</span> n = cap - <span class="hljs-number">1</span>;
+        n |= n &gt;&gt;&gt; <span class="hljs-number">1</span>;
+        n |= n &gt;&gt;&gt; <span class="hljs-number">2</span>;
+        n |= n &gt;&gt;&gt; <span class="hljs-number">4</span>;
+        n |= n &gt;&gt;&gt; <span class="hljs-number">8</span>;
+        n |= n &gt;&gt;&gt; <span class="hljs-number">16</span>;
+        <span class="hljs-keyword">return</span> (n &lt; <span class="hljs-number">0</span>) ? <span class="hljs-number">1</span> : (n &gt;= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + <span class="hljs-number">1</span>;
+&#125;</code></pre></div>
+
+<h3 id="1-4-Hash槽定位"><a href="#1-4-Hash槽定位" class="headerlink" title="1.4. Hash槽定位"></a>1.4. Hash槽定位</h3><p>样例代码：</p>
+<div class="hljs code-wrapper"><pre><code class="hljs Java">HashMap map = <span class="hljs-keyword">new</span> HashMap&lt;&gt;();
+map.put(<span class="hljs-number">20</span>,<span class="hljs-string">&quot;定位Hash槽&quot;</span>);</code></pre></div>
+
+<p>以上给 <span class="label label-primary">HashMap</span> 中添加了一个key为20的元素：</p>
+<p>1.在put元素时会将当前key计算hash值,通过现有的key计算确认hashCode为20,下面看看 Hash槽是如何定位到数组里的。<br>2.用Hash值定位数组:</p>
+<ul>
+    <li>hashCode 20转为二进制位为10100,(默认的长度容量为16,是下面代码 n 的值）length-1=15 = 01111 (n - 1),用2进制算法的与进行计算 10100 & 01111 = 00100 = 4</li>
+    <li>说说与符号计算,二进制为 10100 跟 01111 相比 都为1的输出 1 所以计算后为 00100 = 4 最后N位刚好就是十进制的取余运算的结果 20 % 16 = 4</li>
+    <li>为什么要用二进制算,不用 % 求模算,因为二进制算的速度比求模快10倍</li>
+</ul>
+
+<div class="hljs code-wrapper"><pre><code class="hljs Java"><span class="hljs-keyword">if</span> ((p = tab[i = (n - <span class="hljs-number">1</span>) &amp; hash]) == <span class="hljs-keyword">null</span>)
+   tab[i] = newNode(hash, key, value, <span class="hljs-keyword">null</span>);</code></pre></div>
+
+<h3 id="1-5-源码解析-get：获取元素"><a href="#1-5-源码解析-get：获取元素" class="headerlink" title="1.5. 源码解析 get：获取元素"></a>1.5. 源码解析 get：获取元素</h3><div class="hljs code-wrapper"><pre><code class="hljs Java"><span class="hljs-string">&#x27;以下操作牵扯到数组,链表以及红黑树本文章不做讲解&#x27;</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> V <span class="hljs-title">get</span><span class="hljs-params">(Object key)</span> </span>&#123;
+        Node e; <span class="hljs-string">&#x27;一.查询到的元素&#x27;</span>
+        <span class="hljs-keyword">return</span> (e = getNode(hash(key), key)) == <span class="hljs-keyword">null</span> ? <span class="hljs-keyword">null</span> : e.value;
+&#125;
+<span class="hljs-string">&#x27;二.获取Node方法&#x27;</span>
+<span class="hljs-string">&#x27;1).hash 为key的hash值;&#x27;</span>
+<span class="hljs-string">&#x27;2).key 为键;&#x27;</span>
+<span class="hljs-string">&#x27;3).Node[] tab;为数组&#x27;</span>
+<span class="hljs-string">&#x27;4).Node first;(链表或红黑树)&#x27;</span>
+<span class="hljs-string">&#x27;5).Node e;子节点&#x27;</span>
+<span class="hljs-string">&#x27;5).int n 数组长度&#x27;</span>
+<span class="hljs-string">&#x27;5).K k 存储在节点中的Key元素&#x27;</span>
+<span class="hljs-function"><span class="hljs-keyword">final</span> Node <span class="hljs-title">getNode</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash, Object key)</span> </span>&#123;
+    Node[] tab; Node first, e; <span class="hljs-keyword">int</span> n; K k;
+    <span class="hljs-string">&#x27;将成员变量tab赋给局部变量tab,并且当前数组的长度大于0,并且定位到hash槽中的节点不为空,将数组里的节点获取出来&#x27;</span>
+    <span class="hljs-keyword">if</span> ((tab = table) != <span class="hljs-keyword">null</span> &amp;&amp; (n = tab.length) &gt; <span class="hljs-number">0</span> &amp;&amp;
+        (first = tab[(n - <span class="hljs-number">1</span>) &amp; hash]) != <span class="hljs-keyword">null</span>) &#123; <span class="hljs-string">&#x27;//first = tab[(n - 1) &amp; hash])定位hash槽获取元素&#x27;</span>
+        <span class="hljs-string">&#x27;判断根节点的hash以及key是否完全相等。链表以及红黑树的根节点的操作复杂度为0(1)&#x27;</span>
+        <span class="hljs-keyword">if</span> (first.hash == hash &amp;&amp; <span class="hljs-comment">// always check first node</span>
+            ((k = first.key) == key || (key != <span class="hljs-keyword">null</span> &amp;&amp; key.equals(k))))
+            <span class="hljs-string">&#x27;相等就返回元素&#x27;</span>
+            <span class="hljs-keyword">return</span> first;
+           <span class="hljs-string">&#x27;判断子节点不为空&#x27;</span>
+        <span class="hljs-keyword">if</span> ((e = first.next) != <span class="hljs-keyword">null</span>) &#123;
+            <span class="hljs-string">&#x27;判断是否为红黑树&#x27;</span>
+            <span class="hljs-keyword">if</span> (first <span class="hljs-keyword">instanceof</span> TreeNode)
+                <span class="hljs-string">&#x27;如果是转换为红黑树,调用getTreeNode查找元素,并返回&#x27;</span>
+                <span class="hljs-keyword">return</span> ((TreeNode)first).getTreeNode(hash, key);
+            <span class="hljs-string">&#x27;不为红黑树,就是链表循环遍历查找元素&#x27;</span>
+            <span class="hljs-keyword">do</span> &#123;
+                <span class="hljs-string">&#x27;如链表中hash以及key是否完全相等&#x27;</span>
+                <span class="hljs-keyword">if</span> (e.hash == hash &amp;&amp;
+                    ((k = e.key) == key || (key != <span class="hljs-keyword">null</span> &amp;&amp; key.equals(k))))
+                    <span class="hljs-string">&#x27;相等就返回元素&#x27;</span>
+                    <span class="hljs-keyword">return</span> e;
+            &#125; <span class="hljs-keyword">while</span> ((e = e.next) != <span class="hljs-keyword">null</span>);
+        &#125;
+    &#125;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+&#125;</code></pre></div>
+
+<h3 id="1-6-源码解析-put：添加元素"><a href="#1-6-源码解析-put：添加元素" class="headerlink" title="1.6. 源码解析 put：添加元素"></a>1.6. 源码解析 put：添加元素</h3><div class="hljs code-wrapper"><pre><code class="hljs Java"><span class="hljs-string">&#x27;1).Node[] tab;为数组&#x27;</span>
+<span class="hljs-string">&#x27;2).Node p;为节点(链表或红黑树)&#x27;</span>
+<span class="hljs-string">&#x27;5).int n 数组长度&#x27;</span>
+<span class="hljs-string">&#x27;5).i 为定位hash槽的下标(数组下标)&#x27;</span>
+<span class="hljs-function"><span class="hljs-keyword">final</span> V <span class="hljs-title">putVal</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash, K key, V value, <span class="hljs-keyword">boolean</span> onlyIfAbsent,</span></span>
+<span class="hljs-params"><span class="hljs-function">                   <span class="hljs-keyword">boolean</span> evict)</span> </span>&#123;
+    Node[] tab; Node p; <span class="hljs-keyword">int</span> n, i;
+    <span class="hljs-string">&#x27;判断当前数组是否为空&#x27;</span>
+    <span class="hljs-keyword">if</span> ((tab = table) == <span class="hljs-keyword">null</span> || (n = tab.length) == <span class="hljs-number">0</span>)
+        <span class="hljs-string">&#x27;等于空就调整大小&#x27;</span>
+        n = (tab = resize()).length;
+    <span class="hljs-string">&#x27;定位hash槽获取元素(Node 节点)&#x27;</span>
+    <span class="hljs-keyword">if</span> ((p = tab[i = (n - <span class="hljs-number">1</span>) &amp; hash]) == <span class="hljs-keyword">null</span>)
+        <span class="hljs-string">&#x27;为空创建一个新的链表&#x27;</span>
+        tab[i] = newNode(hash, key, value, <span class="hljs-keyword">null</span>);
+    <span class="hljs-keyword">else</span> &#123;
+        <span class="hljs-string">&#x27;判断根节点的hash以及key是否完全相等。链表以及红黑树的根节点的操作复杂度为0(1)&#x27;</span>
+        Node e; K k;
+        <span class="hljs-keyword">if</span> (p.hash == hash &amp;&amp;
+            <span class="hljs-string">&#x27;如果根节点key相等&#x27;</span>
+            ((k = p.key) == key || (key != <span class="hljs-keyword">null</span> &amp;&amp; key.equals(k))))
+            <span class="hljs-string">&#x27;相等就替换&#x27;</span>
+            e = p;
+        <span class="hljs-string">&#x27;判断是否为红黑树&#x27;</span>
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (p <span class="hljs-keyword">instanceof</span> TreeNode)
+            <span class="hljs-string">&#x27;是就转换到红黑树中进行添加元素操作&#x27;</span>
+            e = ((TreeNode)p).putTreeVal(<span class="hljs-keyword">this</span>, tab, hash, key, value);
+        <span class="hljs-string">&#x27;根节点不相等进行下面代码&#x27;</span>
+        <span class="hljs-keyword">else</span> &#123;
+            <span class="hljs-string">&#x27;循环操作(无条件操作,直到成功时停止循环)&#x27;</span>
+            <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> binCount = <span class="hljs-number">0</span>; ; ++binCount) &#123;
+                <span class="hljs-string">&#x27;判断子节点是否为空&#x27;</span>
+                <span class="hljs-keyword">if</span> ((e = p.next) == <span class="hljs-keyword">null</span>) &#123;
+                    <span class="hljs-string">&#x27;为空就创建一个新的节点,并且赋值给当前节点&#x27;</span>
+                    p.next = newNode(hash, key, value, <span class="hljs-keyword">null</span>);
+                    <span class="hljs-string">&#x27;判断循环次数是否大于等于 8 - 1 的长度&#x27;</span>
+                    <span class="hljs-keyword">if</span> (binCount &gt;= TREEIFY_THRESHOLD - <span class="hljs-number">1</span>) <span class="hljs-comment">// -1 for 1st</span>
+                        <span class="hljs-string">&#x27;是就将当前链表转换为红黑树继续操作&#x27;</span>
+                        treeifyBin(tab, hash);
+                    <span class="hljs-keyword">break</span>;
+                &#125;
+                <span class="hljs-string">&#x27;子节点不为空,判断子节点的hash以及key相等,是就停止循环。e 为HashMap里有的值,需要将value替换&#x27;</span>
+                <span class="hljs-keyword">if</span> (e.hash == hash &amp;&amp;
+                    ((k = e.key) == key || (key != <span class="hljs-keyword">null</span> &amp;&amp; key.equals(k))))
+                    <span class="hljs-keyword">break</span>;
+                <span class="hljs-string">&#x27;将节点值赋值给局部变量,进行下一次修改&#x27;</span>
+                p = e;
+            &#125;
+        &#125;
+        <span class="hljs-string">&#x27;如果e元素存在声明,之前HashMap节点中有这个key根value,value的值需要&#x27;</span>
+        <span class="hljs-keyword">if</span> (e != <span class="hljs-keyword">null</span>) &#123; <span class="hljs-comment">// existing mapping for key</span>
+            V oldValue = e.value;
+            <span class="hljs-string">&#x27;替换值 !onlyIfAbsent 为 true&#x27;</span>
+            <span class="hljs-keyword">if</span> (!onlyIfAbsent || oldValue == <span class="hljs-keyword">null</span>)
+                e.value = value;
+            <span class="hljs-string">&#x27;将当前节点移动到链表最后&#x27;</span>
+            afterNodeAccess(e);
+            <span class="hljs-keyword">return</span> oldValue;
+        &#125;
+    &#125;
+    <span class="hljs-string">&#x27;如果代码进入这说明,是新添加了一个元素&#x27;</span>
+    ++modCount;
+    <span class="hljs-string">&#x27;判断当前tab数组是否要扩容&#x27;</span>
+    <span class="hljs-keyword">if</span> (++size &gt; threshold)
+        <span class="hljs-string">&#x27;调整数组大小&#x27;</span>
+        resize();
+    afterNodeInsertion(evict);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+&#125;</code></pre></div>
+
+<h3 id="1-7-源码解析-resize-扩容"><a href="#1-7-源码解析-resize-扩容" class="headerlink" title="1.7. 源码解析 resize: 扩容"></a>1.7. 源码解析 resize: 扩容</h3><ul>
+    <li>当容量大于 0.75 负载因子进行扩。 即默认情况下数组长度是16*0.75=12时，触发扩容操作。</li>
+    <li>创建一个原来的2倍数组,将原数组值复制进去,这里需要重新计算位置,我们使用的是2次幂的扩展(指长度扩为原来2倍)，所以，元素的位置要么是在原位置，要么是在原位置再移动2次幂的位置。元素在重新计算hash之后，因为n变为2倍，那么n-1的mask范围在高位多1bit(红色)</li>
+</ul>
+
+<p><img src="/essay/HashMap/img.png" srcset="/img/loading.gif" lazyload></p>
+<p class="note note-info">
+元素在重新计算hash之后，因为n变为2倍，那么n-1的mask范围在高位多1bit(红色)，因此新的index就会发生这样的变化：
+</p>
+
+<p><img src="/essay/HashMap/img_1.png" srcset="/img/loading.gif" lazyload></p>
+<p class="note note-info">
+因此，我们在扩充HashMap的时候，不需要像JDK1.7的实现那样重新计算hash，只需要看看原来的hash值新增的那个bit是1还是0就好了，是0的话索引没变，是1的话索引变成“原索引+oldCap”，可以看看下图为16扩充为32的resize示意图：
+</p>
+
+<p><img src="/essay/HashMap/img_2.png" srcset="/img/loading.gif" lazyload></p>
+<h2 id="2-HashMap-面试题"><a href="#2-HashMap-面试题" class="headerlink" title="2. HashMap 面试题"></a>2. HashMap 面试题</h2><h3 id="2-1-HashMap1-7跟1-8的HashMap的区别"><a href="#2-1-HashMap1-7跟1-8的HashMap的区别" class="headerlink" title="2.1. HashMap1.7跟1.8的HashMap的区别"></a>2.1. HashMap1.7跟1.8的HashMap的区别</h3><ul>
+    <li><span class="label label-primary">HashMap1.7</span> 是由 数组+链接组成</li>
+    <li><span class="label label-primary">HashMap1.8</span> 是由 数组+链接+红黑树组成</li>
+</ul>
+
+<h3 id="2-2-HashMap1-8-为什么要引入红黑树-有那些好处"><a href="#2-2-HashMap1-8-为什么要引入红黑树-有那些好处" class="headerlink" title="2.2. HashMap1.8 为什么要引入红黑树,有那些好处"></a>2.2. HashMap1.8 为什么要引入红黑树,有那些好处</h3><ul>
+    <li>首先红黑树是一个绝对 平衡二叉树 ,操作级别在<span class="label label-primary">O(logN)</span>,链接的插入节点操作是<span class="label label-primary">O(1)</span>级别,查询为<span class="label label-primary">O(n)</span>级别的。</li>
+    <li><span class="label label-primary">HashMap</span>的<span class="label label-primary">Hash</span>冲突如果链表来存储,如果链接很长,需要从头节点查询到尾节点查询开销太大,查询速度慢。</li>
+    <li>引用红黑树是,当链表长度为8的时候会将链表转换为红黑树进行存储,红黑树的查询是通过左右子树查询的。(这里不做过多的解释了,有兴趣可以去看看 红黑树 或 平衡二叉树)</li>
+</ul>
+
+<h3 id="2-3-HashMap1-7用的是链表头节点插入-HashMap1-8是用尾节点插入的有什么区别-会发生什么问题"><a href="#2-3-HashMap1-7用的是链表头节点插入-HashMap1-8是用尾节点插入的有什么区别-会发生什么问题" class="headerlink" title="2.3. HashMap1.7用的是链表头节点插入,HashMap1.8是用尾节点插入的有什么区别,会发生什么问题"></a>2.3. HashMap1.7用的是链表头节点插入,HashMap1.8是用尾节点插入的有什么区别,会发生什么问题</h3><ul>
+    <li><span class="label label-primary">1.7</span> 头节点插入数据,主要是考虑热点数据的原因, 而 <span class="label label-primary">1.8</span> 引入了红黑树不需要考虑热点数据。</li>
+    <li><span class="label label-primary">1.7</span> 头节点插入,在<span class="label label-primary">resize()</span>扩容会使链表形成倒序,(形成倒序之后会发生死循环,当多线程处理的时候，此时如果存在a->b->c链表，当我们rehash以后，有可能变为b->a，然而其他的线程处理完之后，结果可能会造成b->a->b，造成loop成环。一旦寻找数据会造成死循环。)</li>
+    <li><span class="label label-primary">1.8</span> 为了解决 <span class="label label-primary">1.7</span> 中的一些问题,采用了尾部插入的方式,源码中使用了一个高位来识别之前的数据和插入的新数据，保持了之前的顺序，解决了<span class="label label-primary">1.7</span>中可能造成成环的问题。具体的实现是扩容只有最高位会多出一个1，如果之前的数据一旦e & oldCapacity = 0，表明是原来的数据，保持就好，如果是为1，表明是即将插入的新数据，此时保持插入高位，这样就避免了成环的问题。</li>
+</ul>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                      <a class="hover-with-bg" href="/tags/HashMap/">HashMap</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/06/04/jvm/jvm3.0/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Jvm 配置及优化</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/06/04/java/OOM1.0/">
+                        <span class="hidden-mobile">Java OOM定位处理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/gh/HCLonely/Valine@latest/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"BmWJPSifebgqliaA9sdhmII7-gzGzoHsz","appKey":"HvFu44h5vVRRYuQIg6uNJkKR","placeholder":"说点什么","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"pageSize":10,"lang":"zh-CN","highlight":true,"recordIP":false,"serverURLs":"https://bmwjpsif.lc-cn-n1-shared.com","emojiCDN":null,"emojiMaps":null,"enableQQ":false,"requiredFields":[]},
+          {
+            el: "#valine",
+            path: window.location.pathname,
+            master: "",
+            friends: "",
+            tagMeta: ["博主","友人","访客"]
+          }
+        )
+        new Valine(options);
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js" ></script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+<script src="/js/diy/timeDate.js"></script>
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
