@@ -4,11 +4,11 @@
   
   
   <entry>
-    <title>Mysql事务隔离级别及实现原理</title>
-    <link href="/2021/06/10/mysql/transaction/"/>
-    <url>/2021/06/10/mysql/transaction/</url>
+    <title>mysql索引以及查询优化</title>
+    <link href="/2021/06/11/mysql/index/"/>
+    <url>/2021/06/11/mysql/index/</url>
     
-    <content type="html"><![CDATA[<h2 id="1-Mysql事务"><a href="#1-Mysql事务" class="headerlink" title="1. Mysql事务"></a>1. Mysql事务</h2><p>MySQL 事务都是指在 InnoDB 引擎下，MyISAM 引擎是不支持事务的。</p><p>数据事务是只一组数据操作的执行,在事务内操作要么全部成功或失败。</p><h2 id="2-事务的四大特性-ACID"><a href="#2-事务的四大特性-ACID" class="headerlink" title="2. 事务的四大特性(ACID)"></a>2. 事务的四大特性(ACID)</h2><p class="note note-info">(ACID) 指的是在数据库事务正确执行的四个基本要素的缩写。</p><table><thead><tr><th align="center">特性</th><th>描述</th></tr></thead><tbody><tr><td align="center">原子性（Atomicity）</td><td>1. 原子性比较好理解,事务中的一切操作,要么全部执行成功要么全部失败 <br> 2. 原子性一旦开启就只能到结束,如果程序线程中断,将回滚到事务最初未操作的状态</td></tr><tr><td align="center">一致性（Consistency）</td><td>一致性是只事务内数据只能回到一个状态。要么成功修改状态,要么失败初始状态</td></tr><tr><td align="center">持久性（Isolation）</td><td>持久性就简单粗暴,事务执行成功数据保存在磁盘永久有效。程序关闭、宕机都可以恢复数据</td></tr><tr><td align="center">隔离性（Durability）</td><td>1. 读未提交（READ UNCOMMITTED） <br> 2. 读提交（READ COMMITTED）<br> 3. 可重复读（REPEATABLE READ）<br> 4. 串行化（SERIALIZABLE）</td></tr></tbody></table><h2 id="3-概念"><a href="#3-概念" class="headerlink" title="3. 概念"></a>3. 概念</h2><h3 id="1-脏读"><a href="#1-脏读" class="headerlink" title="1. 脏读"></a>1. 脏读</h3><p>脏读指读到了其他事务未提交的数据，未提交意味着这些数据可能会回滚，可能最终不会存到数据库中，读到了不存在的数据。这就是脏读。</p><h3 id="2-幻读"><a href="#2-幻读" class="headerlink" title="2. 幻读"></a>2. 幻读</h3><p>幻读指A事务在根据条件查询时出现的数据,B事务在符合A事务查询条件表中插入了一条数据。A事务再次查询时多了一条数据,是刚才B事务插入的数据。感觉出现了幻觉，这就叫幻读。</p><h3 id="3-不可重复读"><a href="#3-不可重复读" class="headerlink" title="3. 不可重复读"></a>3. 不可重复读</h3><p>一个事务只能读到另一个已经提交的事务修改过的数据，并且其他事务每对该数据进行一次修改并提交后，该事务都能查询得到最新值。</p><h2 id="4-事务隔离级别"><a href="#4-事务隔离级别" class="headerlink" title="4. 事务隔离级别"></a>4. 事务隔离级别</h2><table><thead><tr><th align="left">隔离级别</th><th align="center">脏读</th><th align="center">不可重复读</th><th align="center">幻读</th></tr></thead><tbody><tr><td align="left">读未提交（RU）</td><td align="center">√</td><td align="center">√</td><td align="center">√</td></tr><tr><td align="left">读提交（RC）</td><td align="center">×</td><td align="center">√</td><td align="center">√</td></tr><tr><td align="left">可重复读（RR）</td><td align="center">×</td><td align="center">×</td><td align="center">√</td></tr><tr><td align="left">串行化（S）</td><td align="center">×</td><td align="center">×</td><td align="center">×</td></tr></tbody></table><h2 id="5-隔离级别的实现原理"><a href="#5-隔离级别的实现原理" class="headerlink" title="5. 隔离级别的实现原理"></a>5. 隔离级别的实现原理</h2><table><thead><tr><th align="center">事务隔离级别</th><th align="left">实现方式</th></tr></thead><tbody><tr><td align="center">读未提交（RU）</td><td align="left">事务对当前被读取数据时不加锁。 <br> 事务在更新某数据的瞬间（发生更新的瞬间）,<span style="font-weight:bold ; ">对其加行级共享锁</span>，直到事务结束才释放。</td></tr><tr><td align="center">读提交（RC）</td><td align="left">事务对当前被读取的数据<span style="font-weight:bold ; ">加行级共享锁（当读到时才加锁）</span>，一旦读完该行,立即释放该行级共享锁。<br>事务在更新某数据的瞬间（发生更新的瞬间）,<span style="font-weight:bold ; ">对其加行排他锁</span>，直到事务结束才释放。</td></tr><tr><td align="center">可重复读（RR）</td><td align="left">事务对当前被读取的瞬间就是开始读取的瞬间，<span style="font-weight:bold ; ">对其加行级共享锁</span>，直到事务结束才释放。<br>事务在更新某数据的瞬间（发生更新的瞬间）,<span style="font-weight:bold ; ">对其加行排他锁</span>，直到事务结束才释放。</td></tr><tr><td align="center">串行化（S）</td><td align="left">事务在读取数据时，必须先对其加<span style="font-weight:bold ; ">表级共享锁</span>,直到事务结束才释放。<br>事务在更新数据时，必须先对其加<span style="font-weight:bold ; ">表级排他锁</span>,直到事务结束才释放。</td></tr></tbody></table>]]></content>
+    <content type="html"><![CDATA[<p class="note note-info">mysql 官方对索引的定义为：索引（Index）是帮助MySQL高效获取数据的数据结构。提取句子主干，就可以得到索引的本质：索引是数据结构。本文主要针对InnoDB进行讲解。</p><h2 id="1-MySQL-如何使用索引"><a href="#1-MySQL-如何使用索引" class="headerlink" title="1. MySQL 如何使用索引"></a>1. MySQL 如何使用索引</h2><p>索引用于快速查找具有特定列值的行。如果没有索引，MySQL 必须从第一行开始，然后通读整个表以查找相关行。桌子越大，这个成本就越高。如果该表具有相关列的索引，MySQL 可以快速确定要在数据文件中间查找的位置，而无需查看所有数据。这比顺序读取每一行要快得多。</p><p>大多数 MySQL 索引（PRIMARY KEY、 UNIQUE、INDEX和 FULLTEXT）都存储在 B 树中。例外：空间数据类型的索引使用 R 树；MEMORY 表也​​支持哈希索引；InnoDB对FULLTEXT索引使用倒排列表。</p><h2 id="2-索引类型"><a href="#2-索引类型" class="headerlink" title="2. 索引类型"></a>2. 索引类型</h2><h3 id="2-1-普通索引（INDEX）"><a href="#2-1-普通索引（INDEX）" class="headerlink" title="2.1. 普通索引（INDEX）"></a>2.1. 普通索引（INDEX）</h3><p>普通索引是指MySQL中的基本索引类型，允许在定义索引的列中插入重复值和空值</p><h3 id="2-2-唯一索引（UNIQUE）"><a href="#2-2-唯一索引（UNIQUE）" class="headerlink" title="2.2. 唯一索引（UNIQUE）"></a>2.2. 唯一索引（UNIQUE）</h3><p>索引列的值必须唯一，但允许有空值。若是组合索引，则列值的组合必须唯一。主键索引是一种特殊的唯一索引，不允许有空值</p><h3 id="2-3-主键索引（PRIMARY-KEY）（聚集索引）"><a href="#2-3-主键索引（PRIMARY-KEY）（聚集索引）" class="headerlink" title="2.3. 主键索引（PRIMARY KEY）（聚集索引）"></a>2.3. 主键索引（PRIMARY KEY）（聚集索引）</h3><p>InnoDB存储引擎的表会存在主键（唯一非null），如果建表的时候没有指定主键，则会使用第一非空的唯一索引作为聚集索引，否则InnoDB会自动帮你创建一个不可见的、长度为6字节的row_id用来作为聚集索引。</p><h3 id="2-4-组合索引"><a href="#2-4-组合索引" class="headerlink" title="2.4. 组合索引"></a>2.4. 组合索引</h3><p>组合索引指在表的多个字段组合上创建的索引，只有在查询条件中使用了这些字段的左边字段时，索引才会被使用。使用组合索引时遵循最左前缀集合</p><h3 id="2-5-全文索引（FULLTEXT）"><a href="#2-5-全文索引（FULLTEXT）" class="headerlink" title="2.5. 全文索引（FULLTEXT）"></a>2.5. 全文索引（FULLTEXT）</h3><p>全文索引类型为FULLTEXT，在定义索引的列上支持值的全文查找，允许在这些索引列中插入重复值和空值。全文索引可以在CHAR、VARCHAR或者TEXT类型的列上创建</p><div class="hljs code-wrapper"><pre><code class="hljs Sql"><span class="hljs-comment">--创建索引</span><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `table_name` <span class="hljs-keyword">ADD</span> INDEX ( `<span class="hljs-keyword">column</span>` )         <span class="hljs-comment">--普通索引</span><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `table_name` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">UNIQUE</span> (`<span class="hljs-keyword">column</span>`)          <span class="hljs-comment">--唯一索引</span><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `table_name` <span class="hljs-keyword">ADD</span> FULLTEXT (`<span class="hljs-keyword">column</span>`)        <span class="hljs-comment">--全文索引</span><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `table_name` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">PRIMARY</span> KEY ( `<span class="hljs-keyword">column</span>` )   <span class="hljs-comment">--主键索引</span><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `table_name` <span class="hljs-keyword">ADD</span> INDEX index_name (`column1`,`column2`,`column3`)   <span class="hljs-comment">--组合索引</span><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `table_name` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">UNIQUE</span> index_name (`column1`,`column2`,`column3`)  <span class="hljs-comment">--组合唯一索引</span></code></pre></div>]]></content>
     
     
     <categories>
@@ -20,9 +20,36 @@
     
     <tags>
       
-      <tag>Mysql</tag>
+      <tag>msql</tag>
+      
+      <tag>索引</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>mysql事务隔离级别及实现原理</title>
+    <link href="/2021/06/10/mysql/transaction/"/>
+    <url>/2021/06/10/mysql/transaction/</url>
+    
+    <content type="html"><![CDATA[<h2 id="1-Mysql事务"><a href="#1-Mysql事务" class="headerlink" title="1. Mysql事务"></a>1. Mysql事务</h2><p>MySQL 事务都是指在 InnoDB 引擎下，MyISAM 引擎是不支持事务的。</p><p>数据事务是只一组数据操作的执行,在事务内操作要么全部成功或失败。</p><h2 id="2-事务的四大特性-ACID"><a href="#2-事务的四大特性-ACID" class="headerlink" title="2. 事务的四大特性(ACID)"></a>2. 事务的四大特性(ACID)</h2><p class="note note-info">(ACID) 指的是在数据库事务正确执行的四个基本要素的缩写。</p><table><thead><tr><th align="center">特性</th><th>描述</th></tr></thead><tbody><tr><td align="center">原子性（Atomicity）</td><td>1. 原子性比较好理解,事务中的一切操作,要么全部执行成功要么全部失败 <br> 2. 原子性一旦开启就只能到结束,如果程序线程中断,将回滚到事务最初未操作的状态</td></tr><tr><td align="center">一致性（Consistency）</td><td>一致性是只事务内数据只能回到一个状态。要么成功修改状态,要么失败初始状态</td></tr><tr><td align="center">持久性（Isolation）</td><td>持久性就简单粗暴,事务执行成功数据保存在磁盘永久有效。程序关闭、宕机都可以恢复数据</td></tr><tr><td align="center">隔离性（Durability）</td><td>1. 读未提交（READ UNCOMMITTED） <br> 2. 读提交（READ COMMITTED）<br> 3. 可重复读（REPEATABLE READ）<br> 4. 串行化（SERIALIZABLE）</td></tr></tbody></table><h2 id="3-概念"><a href="#3-概念" class="headerlink" title="3. 概念"></a>3. 概念</h2><h3 id="1-脏读"><a href="#1-脏读" class="headerlink" title="1. 脏读"></a>1. 脏读</h3><p>脏读指读到了其他事务未提交的数据，未提交意味着这些数据可能会回滚，可能最终不会存到数据库中，读到了不存在的数据。这就是脏读。</p><h3 id="2-幻读"><a href="#2-幻读" class="headerlink" title="2. 幻读"></a>2. 幻读</h3><p>幻读指A事务在根据条件查询时出现的数据,B事务在符合A事务查询条件表中插入了一条数据。A事务再次查询时多了一条数据,是刚才B事务插入的数据。感觉出现了幻觉，这就叫幻读。</p><h3 id="3-不可重复读"><a href="#3-不可重复读" class="headerlink" title="3. 不可重复读"></a>3. 不可重复读</h3><p>一个事务只能读到另一个已经提交的事务修改过的数据，并且其他事务每对该数据进行一次修改并提交后，该事务都能查询得到最新值。</p><h2 id="4-事务隔离级别"><a href="#4-事务隔离级别" class="headerlink" title="4. 事务隔离级别"></a>4. 事务隔离级别</h2><table><thead><tr><th align="left">隔离级别</th><th align="center">脏读（Dirty Read）</th><th align="center">不可重复读（NonRepeatable Read）</th><th align="center">幻读（Phantom Read）</th></tr></thead><tbody><tr><td align="left">读未提交（RU）</td><td align="center">√</td><td align="center">√</td><td align="center">√</td></tr><tr><td align="left">读提交（RC）</td><td align="center">×</td><td align="center">√</td><td align="center">√</td></tr><tr><td align="left">可重复读（RR）</td><td align="center">×</td><td align="center">×</td><td align="center">√</td></tr><tr><td align="left">串行化（S）</td><td align="center">×</td><td align="center">×</td><td align="center">×</td></tr></tbody></table><h2 id="5-隔离级别的实现原理"><a href="#5-隔离级别的实现原理" class="headerlink" title="5. 隔离级别的实现原理"></a>5. 隔离级别的实现原理</h2><table><thead><tr><th align="center">事务隔离级别</th><th align="left">实现方式</th></tr></thead><tbody><tr><td align="center">读未提交（RU）</td><td align="left">事务对当前被读取数据时不加锁。 <br> 事务在更新某数据的瞬间（发生更新的瞬间）,<span style="font-weight:bold ; ">对其加行级共享锁</span>，直到事务结束才释放。</td></tr><tr><td align="center">读提交（RC）</td><td align="left">事务对当前被读取的数据加行级共享锁<span style="font-weight:bold ; ">（当读到时才加锁）</span>，一旦读完该行,立即释放该行级共享锁。<br>事务在更新某数据的瞬间（发生更新的瞬间）,<span style="font-weight:bold ; ">对其加行排他锁</span>，直到事务结束才释放。</td></tr><tr><td align="center">可重复读（RR）</td><td align="left">事务对当前被读取的瞬间就是开始读取的瞬间，<span style="font-weight:bold ; ">对其加行级共享锁</span>，直到事务结束才释放。<br>事务在更新某数据的瞬间（发生更新的瞬间）,<span style="font-weight:bold ; ">对其加行排他锁</span>，直到事务结束才释放。</td></tr><tr><td align="center">串行化（S）</td><td align="left">事务在读取数据时，必须先对其加<span style="font-weight:bold ; ">表级共享锁</span>,直到事务结束才释放。<br>事务在更新数据时，必须先对其加<span style="font-weight:bold ; ">表级排他锁</span>,直到事务结束才释放。</td></tr></tbody></table><h2 id="6-共享锁与排他锁"><a href="#6-共享锁与排他锁" class="headerlink" title="6. 共享锁与排他锁"></a>6. 共享锁与排他锁</h2><h3 id="6-1-共享锁"><a href="#6-1-共享锁" class="headerlink" title="6.1. 共享锁"></a>6.1. 共享锁</h3><p>共享锁又称读锁，是读取操作创建的锁。其他用户可以并发读取数据，其他任何事务都不能对数据进行修改，直到已释放所有共享锁。</p><p class="note note-info">共享锁：其它事务可以继续加共享锁，但不能加排它锁</p><h3 id="6-2-排他锁"><a href="#6-2-排他锁" class="headerlink" title="6.2. 排他锁"></a>6.2. 排他锁</h3><p>排他锁又称为写锁，顾名思义，排他锁就是不能与其他所并存，如一个事务获取了一个数据行的排他锁，其他事务就不能再获取该行的其他锁，包括共享锁和排他锁，但是获取排他锁的事务是可以对数据就行读取和修改。</p><p class="note note-info">排他锁：其它事务不能再获得任何锁</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>mysql</category>
+      
+    </categories>
+    
+    
+    <tags>
       
       <tag>事务</tag>
+      
+      <tag>mysql</tag>
       
     </tags>
     
@@ -119,16 +146,16 @@
     
     <categories>
       
-      <category>Linux</category>
+      <category>linux</category>
       
     </categories>
     
     
     <tags>
       
-      <tag>Linux</tag>
-      
       <tag>jar部署</tag>
+      
+      <tag>linux</tag>
       
     </tags>
     

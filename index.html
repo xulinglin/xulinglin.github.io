@@ -182,8 +182,63 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2021/06/11/mysql/index/" target="_self">
+          <img src="/essay/mysql/img1.png" srcset="/img/loading.gif" lazyload alt="mysql索引以及查询优化">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/06/11/mysql/index/" target="_self">
+          mysql索引以及查询优化
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/06/11/mysql/index/" target="_self">
+          
+          
+            
+          
+          
+mysql 官方对索引的定义为：索引（Index）是帮助MySQL高效获取数据的数据结构。提取句子主干，就可以得到索引的本质：索引是数据结构。本文主要针对InnoDB进行讲解。
+
+
+1. MySQL 如何使用索引索引用于快速查找具有特定列值的行。如果没有索引，MySQL 必须从第一行开始，然后通读整个表以查找相关行。桌子越大，这个成本就越高。如果该表具有相关列的索引，MySQL 可以快速确定要在
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-06-11 14:47" pubdate>
+              2021-06-11
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/msql/">msql</a>
+            
+              <a href="/tags/%E7%B4%A2%E5%BC%95/">索引</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/06/10/mysql/transaction/" target="_self">
-          <img src="/essay/mysql/img.png" srcset="/img/loading.gif" lazyload alt="Mysql事务隔离级别及实现原理">
+          <img src="/essay/mysql/img.png" srcset="/img/loading.gif" lazyload alt="mysql事务隔离级别及实现原理">
         </a>
       </div>
     
@@ -191,7 +246,7 @@
       <h1 class="index-header">
         
         <a href="/2021/06/10/mysql/transaction/" target="_self">
-          Mysql事务隔离级别及实现原理
+          mysql事务隔离级别及实现原理
         </a>
       </h1>
 
@@ -234,9 +289,9 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Mysql/">Mysql</a>
-            
               <a href="/tags/%E4%BA%8B%E5%8A%A1/">事务</a>
+            
+              <a href="/tags/mysql/">mysql</a>
             
           </div>
         
@@ -455,9 +510,9 @@ n
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Linux/">Linux</a>
-            
               <a href="/tags/jar%E9%83%A8%E7%BD%B2/">jar部署</a>
+            
+              <a href="/tags/linux/">linux</a>
             
           </div>
         
@@ -686,62 +741,6 @@ n
               <a href="/tags/Java/">Java</a>
             
               <a href="/tags/OOM/">OOM</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2021/06/04/jvm/jvm2.0/" target="_self">
-          <img src="/essay/jvm2.0/img.png" srcset="/img/loading.gif" lazyload alt="Java 虚拟机 Jvm 内存模型">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/06/04/jvm/jvm2.0/" target="_self">
-          Java 虚拟机 Jvm 内存模型
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/06/04/jvm/jvm2.0/" target="_self">
-          
-          
-            
-          
-          1. 内存模型
-2. 主要存放对象实例
-3. 程序计数器程序计数器记录当前线程执行程序的位置，改变计数器的值来确定执行的下一条指令，比如循环、分支、方法跳转、异常处理，线程恢复都是依赖程序计数器来完成。
-4. 方法区主要存储一些：加载类的信息 、常量、静态变量、即时编译器编译后的代码等元数据信息。
-重要区域为常量池: 常量池又分为静态常量池跟运行时常量池。
-静态常量池：我们也叫class常量池,存
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-06-04 10:57" pubdate>
-              2021-06-04
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Java/">Java</a>
-            
-              <a href="/tags/Jvm/">Jvm</a>
             
           </div>
         
